@@ -1,3 +1,4 @@
+
 export type Email =`${string}@${string}.${string}`;
 
 export interface DBEntity {
