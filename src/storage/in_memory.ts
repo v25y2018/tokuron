@@ -11,7 +11,7 @@ export class SimpleInMemoryResource<T extends S & DBEntity, S>
         const fullData ={
             ...data,
             id: this.data.length.toString(),
-            createdAt: Data.now(),
+            createdAt: Date.now(),
             updatedAt: Date.now(),
         } as T;
         this.data.push(fullData);
@@ -57,7 +57,7 @@ export class SimpleInMemoryResource<T extends S & DBEntity, S>
     async update(id :string, data: S): Promise<T | null>{
         const entity = await this.get(id);
         if(entity){
-            const newEntity ={...entity, ...date, updatedAt: Date.now() };
+            const newEntity ={...entity, ...data, updatedAt: Date.now() };
             await this.delete(id);
             this.data.push(newEntity);
             return newEntity;
