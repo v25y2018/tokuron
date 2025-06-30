@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import type{ ContextVariables } from "../constants";
+import type { ContextVariables } from "../constants";
 import {API_PREFIX} from "../constants";
 import { attachUserId, checkJWTAuth } from "../middlewares/auth";
 import type { DBCreateUser, DBUser } from "../models/db";

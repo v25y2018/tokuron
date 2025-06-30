@@ -1,4 +1,3 @@
-
 export type Email =`${string}@${string}.${string}`;
 
 export interface DBEntity {
@@ -29,4 +28,3 @@ export interface DBMessage extends DBEntity{
 export type DBCreateUser = Pick<DBUser, "email"|"password"|"name">;
 export type DBCreateChat = Pick<DBChat, "name"|"ownerId">;
 export type DBCreateMessage = Pick<DBMessage, "chatId" | "message" | "type">;
-
