@@ -1,4 +1,4 @@
-import { 
+import type { 
     DBChat,
     DBCreateChat,
     DBCreateMessage,
@@ -11,7 +11,7 @@ import {
  export type APIUser = Omit < DBUser, "password">;
 
  export type APICreatechat = DBCreateChat;
- export type AIPChat = DBChat;
+ export type APIChat = DBChat;
 
  export type APICreateMessage = DBCreateMessage;
  export type APIMessage = DBMessage;

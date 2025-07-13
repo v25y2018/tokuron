@@ -38,7 +38,7 @@ export function createChatApp(
     const { id } = c.req.param();
     const userId = c.get("userId");
     // 修正箇所2
-    const data = await chatResource.find({ id: id, ownerId: userId });
+    const data = await chatResource.find({id, ownerId: userId });
     return c.json({ data });
   });
 

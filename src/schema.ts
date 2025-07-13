@@ -1,5 +1,6 @@
 import { sqliteTable, integer, text, uniqueIndex } from "drizzle-orm/sqlite-core";
-import { sql, relations, Table } from "drizzle-orm";
+import { sql, relations} from "drizzle-orm";
+
 
 export const userTable = sqliteTable("user", {
     id: integer("id").primaryKey({ autoIncrement: true}),
@@ -17,7 +18,7 @@ export const chatTable =sqliteTable("chat",{
     id: integer("id").primaryKey({ autoIncrement: true}),
     createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`).notNull(),
     updatedAt: text("updatedAt").default(sql`CURRENT_TIMESTAMP`).notNull(),
-    ownerId: integer("ounerId").notNull()
+    ownerId: integer("ownerId").notNull()
         .references(()=> userTable.id, {
             onUpdate: "cascade",
             onDelete: "cascade"
