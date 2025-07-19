@@ -22,7 +22,7 @@ export class UserSQLResource implements IDatabaseResource<DBUser, DBCreateUser> 
     return result as DBUser;
   }
 
-  //追記
+
   async delete(id: string): Promise<DBUser | null> {
     const result = await this.db
       .delete(userTable)
@@ -66,7 +66,16 @@ export class UserSQLResource implements IDatabaseResource<DBUser, DBCreateUser> 
     }
   }
 
-  //追記
+  async get(id : string): Promise<DBUser | null>{
+    const result = await this.db
+      .select()
+      .from(userTable)
+      .where(eq(userTable.id, id))
+      .get();
+
+    return result as DBUser || null;
+    }
+
   async update(id: string, data: Partial<DBUser>): Promise<DBUser | null> {
     const updateData = Object.entries(data)
       .filter(([_, value]) => value !== undefined)
@@ -144,6 +153,17 @@ export class ChatSQLResource implements IDatabaseResource<DBChat, DBCreateChat> 
     return all ? await query.all() as T : (await query.get() || null) as T;
   }
 
+
+  async get(id: string): Promise<DBChat | null> {
+  const result = await this.db
+    .select()
+    .from(chatTable)
+    .where(eq(chatTable.id, id))
+    .get();
+  return result as DBChat || null;
+}
+
+
   async update(id: string, data: Partial<DBChat>): Promise<DBChat | null> {
     const updateData = Object.entries(data)
       .filter(([_, value]) => value !== undefined)
@@ -214,6 +234,16 @@ export class MessageSQLResource implements IDatabaseResource<DBMessage, DBCreate
 
     return all ? await query.all() as T : (await query.get() || null) as T;
   }
+
+  async get(id: string): Promise<DBMessage | null> {
+    const result = await this.db
+      .select()
+      .from(messageTable)
+      .where(eq(messageTable.id, id))
+      .get();
+    return result as DBMessage || null;
+  }
+
 
   async update(id: string, data: Partial<DBMessage>): Promise<DBMessage | null> {
     const updateData = Object.entries(data)

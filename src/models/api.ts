@@ -10,7 +10,7 @@ import type {
  export type APICreateUser = DBCreateUser;
  export type APIUser = Omit < DBUser, "password">;
 
- export type APICreatechat = DBCreateChat;
+ export type APICreateChat = DBCreateChat;
  export type APIChat = DBChat;
 
  export type APICreateMessage = DBCreateMessage;

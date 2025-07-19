@@ -15,7 +15,7 @@ import { AUTH_PREFIX, createAuthApp} from "./auth";
 import { CHAT_PREFIX, createChatApp } from "./chat";
 
 import { env } from 'cloudflare:workers'
-import { UserSQLResource } from "../storage/sql";
+
 
 
 export function createMainApp(
