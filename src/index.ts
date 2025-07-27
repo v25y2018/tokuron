@@ -1,7 +1,4 @@
-//src/index.ts
-
-import { createSQLApp } from "./controllers/main";
-
+import {createSQLApp} from"./controllers/main";
 const app = createSQLApp();
 
 export default app;

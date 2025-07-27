@@ -1,30 +1,33 @@
-export type Email =`${string}@${string}.${string}`;
+import { string } from "zod/v4";
 
-export interface DBEntity {
-    id:string;
-    createdAt:Date;
-    updatedAt:Date;
+export type Email = `${string}@${string}.${string}`;
+export type MessageType = "assistant" | "user";
+
+
+export interface DBEntity{
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
-export interface DBUser extends DBEntity {
-    name :string;
+export interface DBUser extends DBEntity{
+    name:string;
     email: Email;
     password: string;
 }
 
-export interface DBChat extends DBEntity {
-    ownerId:DBUser["id"];
+export interface DBChat extends DBEntity{
+    ownerId: DBUser["id"];
     name: string;
 }
 
-export type MessageType = "assistant"|"user";
-
 export interface DBMessage extends DBEntity{
-    chatId:DBChat["id"];
+    chatId: DBChat["id"];
     type: MessageType;
     message: string;
 }
 
-export type DBCreateUser = Pick<DBUser, "email"|"password"|"name">;
-export type DBCreateChat = Pick<DBChat, "name"|"ownerId">;
+
+export type DBCreateUser = Pick<DBUser, "email" | "password" | "name">;
+export type DBCreateChat = Pick<DBChat, "name" | "ownerId">;
 export type DBCreateMessage = Pick<DBMessage, "chatId" | "message" | "type">;

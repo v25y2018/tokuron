@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { ContextVariables } from "../constants";
-import { generateMessageResponse } from "../integrations/gpt";
+import {generateMessageResponse} from "../integrations/gpt";
 import type {
   DBChat,
   DBCreateChat,
@@ -29,17 +29,16 @@ export function createChatApp(
 
   chatApp.get(CHAT_ROUTE, async (c) => {
     const userId = c.get("userId");
-    // 修正箇所1
-    const data =  await chatResource.findAll({ ownerId: userId });
-
+    // Fix the following line appropriately
+    const data = await chatResource.findAll({ownerId: userId});
     return c.json({ data });
   });
 
   chatApp.get(CHAT_DETAIL_ROUTE, async (c) => {
     const { id } = c.req.param();
     const userId = c.get("userId");
-    // 修正箇所2
-    const data = await chatResource.find({id, ownerId: userId });
+    // Fix the following line appropriately
+    const data = await chatResource.find({id, ownerId: userId});
     return c.json({ data });
   });
 
@@ -56,9 +55,8 @@ export function createChatApp(
     const userMessage: DBCreateMessage = { message, chatId, type: "user" };
     await messageResource.create(userMessage);
 
-    const allMessage = await messageResource.findAll({ chatId});
+    const allMessage = await messageResource.findAll({chatId});
     const response = await generateMessageResponse(allMessage, c.env.GITHUB_TOKEN);
-
     const responseMessage: DBCreateMessage = {
       message: response,
       chatId,

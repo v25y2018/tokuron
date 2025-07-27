@@ -1,10 +1,10 @@
-//sql.ts
-
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import type { DBChat, DBCreateChat, DBMessage, DBCreateMessage, DBUser, DBCreateUser } from "../models/db";
 import type { IDatabaseResource } from "./types";
 import { chatTable, messageTable, userTable }  from "../schema";
+import { object } from 'zod/v4';
+import { accepts } from 'hono/accepts';
 
 export class UserSQLResource implements IDatabaseResource<DBUser, DBCreateUser> {
   db: ReturnType<typeof drizzle>;
@@ -22,19 +22,42 @@ export class UserSQLResource implements IDatabaseResource<DBUser, DBCreateUser> 
     return result as DBUser;
   }
 
-
-  async delete(id: string): Promise<DBUser | null> {
+  async delete(id: string): Promise<DBUser | null>{
     const result = await this.db
-      .delete(userTable)
-      .where(eq(userTable.id, id))
-      .returning()
-      .get();
+    .delete(userTable)
+    .where(eq(userTable.id, id))
+    .returning()
+    .get();
 
-    if (result === undefined) {
+    if(result === undefined){
       return null;
     }
     return result as DBUser;
   }
+
+async update(id: string, data: Partial<DBUser>): Promise<DBUser | null>{
+  const updateData = Object.entries(data)
+  .filter(([__dirname, value]) => value != undefined)
+  .reduce((acc, [key, value]) => {
+    acc[key as keyof DBUser] = value;
+    return acc;
+  }, {} as Record<string, any>);
+
+  if(Object.keys(updateData).length === 0){
+    return null;
+  }
+  const result = await this.db
+    .update(userTable)
+    .set(updateData)
+    .where(eq(userTable.id, id))
+    .returning()
+    .get()
+
+  if(result === undefined){
+    return null;
+  }
+  return result as DBUser;
+}
 
   async find(data: Partial<DBUser>): Promise<DBUser | null> {
     return this.findByFields(data, false);
@@ -65,53 +88,24 @@ export class UserSQLResource implements IDatabaseResource<DBUser, DBCreateUser> 
       return (result || null) as T;
     }
   }
-
-  async get(id : string): Promise<DBUser | null>{
+  
+  async get(id:string): Promise<DBUser | null>{
     const result = await this.db
       .select()
       .from(userTable)
       .where(eq(userTable.id, id))
       .get();
-
     return result as DBUser || null;
-    }
-
-  async update(id: string, data: Partial<DBUser>): Promise<DBUser | null> {
-    const updateData = Object.entries(data)
-      .filter(([_, value]) => value !== undefined)
-      .reduce((acc, [key, value]) => {
-        acc[key as keyof DBUser] = value;
-        return acc;
-      }, {} as Record<string, any>);
-
-    if (Object.keys(updateData).length === 0) {
-      return null;
-    }
-    const result = await this.db
-    .update(userTable)
-    .set(updateData)
-    .where(eq(userTable.id, id))
-    .returning()
-    .get();
-
-    if (result === undefined) {
-      return null;
-    }
-    return result as DBUser;
-
   }
-
-
 }
 
 export class ChatSQLResource implements IDatabaseResource<DBChat, DBCreateChat> {
   db: ReturnType<typeof drizzle>;
 
-  constructor(d1: D1Database) {
+  constructor(d1:D1Database){
     this.db = drizzle(d1);
   }
-
-  async create(data: DBCreateChat): Promise<DBChat> {
+ async create(data: DBCreateChat): Promise<DBChat> {
     const result = await this.db
       .insert(chatTable)
       .values(data)
@@ -126,43 +120,8 @@ export class ChatSQLResource implements IDatabaseResource<DBChat, DBCreateChat> 
       .where(eq(chatTable.id, id))
       .returning()
       .get();
-    return result === undefined ? null : result as DBChat;
+    return result ?? null;
   }
-
-  async find(data: Partial<DBChat>): Promise<DBChat | null> {
-    return this.findByFields(data, false);
-  }
-
-  async findAll(data: Partial<DBChat>): Promise<DBChat[]> {
-    return this.findByFields(data, true);
-  }
-
-  private async findByFields<T extends (DBChat | null) | DBChat[]>(
-    data: Partial<DBChat>,
-    all: boolean = false
-  ): Promise<T> {
-    let query = this.db.select().from(chatTable);
-    const conditions = Object.entries(data)
-      .filter(([_, value]) => value !== undefined)
-      .map(([key, value]) => eq(chatTable[key as keyof typeof chatTable], value as string));
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    return all ? await query.all() as T : (await query.get() || null) as T;
-  }
-
-
-  async get(id: string): Promise<DBChat | null> {
-  const result = await this.db
-    .select()
-    .from(chatTable)
-    .where(eq(chatTable.id, id))
-    .get();
-  return result as DBChat || null;
-}
-
 
   async update(id: string, data: Partial<DBChat>): Promise<DBChat | null> {
     const updateData = Object.entries(data)
@@ -181,19 +140,56 @@ export class ChatSQLResource implements IDatabaseResource<DBChat, DBCreateChat> 
       .returning()
       .get();
 
-    return result === undefined ? null : result as DBChat;
+    return result ?? null;
+  }
+
+  async find(data: Partial<DBChat>): Promise<DBChat | null> {
+    return this.findByFields(data, false);
+  }
+
+  async findAll(data: Partial<DBChat>): Promise<DBChat[]> {
+    return this.findByFields(data, true);
+  }
+
+  private async findByFields<T extends (DBChat | null) | DBChat[]>(
+    data: Partial<DBChat>,
+    all: boolean = false,
+  ): Promise<T> {
+    let query = this.db.select().from(chatTable);
+    const conditions = Object.entries(data)
+      .filter(([_, value]) => value !== undefined)
+      .map(([key, value]) => eq(chatTable[key as keyof typeof chatTable], value as string));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    if (all) {
+      const results = await query.all();
+      return results as T;
+    } else {
+      const result = await query.get();
+      return (result || null) as T;
+    }
+  }
+
+  async get(id: string): Promise<DBChat | null> {
+    const result = await this.db
+      .select()
+      .from(chatTable)
+      .where(eq(chatTable.id, id))
+      .get();
+    return result as DBChat || null;
   }
 }
 
-//7．13変更
 export class MessageSQLResource implements IDatabaseResource<DBMessage, DBCreateMessage> {
   db: ReturnType<typeof drizzle>;
 
-  constructor(d1: D1Database) {
+  constructor(d1:D1Database){
     this.db = drizzle(d1);
   }
-
-  async create(data: DBCreateMessage): Promise<DBMessage> {
+ async create(data: DBCreateMessage): Promise<DBMessage> {
     const result = await this.db
       .insert(messageTable)
       .values(data)
@@ -208,42 +204,8 @@ export class MessageSQLResource implements IDatabaseResource<DBMessage, DBCreate
       .where(eq(messageTable.id, id))
       .returning()
       .get();
-    return result === undefined ? null : result as DBMessage;
+    return result ?? null;
   }
-
-  async find(data: Partial<DBMessage>): Promise<DBMessage | null> {
-    return this.findByFields(data, false);
-  }
-
-  async findAll(data: Partial<DBMessage>): Promise<DBMessage[]> {
-    return this.findByFields(data, true);
-  }
-
-  private async findByFields<T extends (DBMessage | null) | DBMessage[]>(
-    data: Partial<DBMessage>,
-    all: boolean = false
-  ): Promise<T> {
-    let query = this.db.select().from(messageTable);
-    const conditions = Object.entries(data)
-      .filter(([_, value]) => value !== undefined)
-      .map(([key, value]) => eq(messageTable[key as keyof typeof messageTable], value as string));
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    return all ? await query.all() as T : (await query.get() || null) as T;
-  }
-
-  async get(id: string): Promise<DBMessage | null> {
-    const result = await this.db
-      .select()
-      .from(messageTable)
-      .where(eq(messageTable.id, id))
-      .get();
-    return result as DBMessage || null;
-  }
-
 
   async update(id: string, data: Partial<DBMessage>): Promise<DBMessage | null> {
     const updateData = Object.entries(data)
@@ -262,6 +224,45 @@ export class MessageSQLResource implements IDatabaseResource<DBMessage, DBCreate
       .returning()
       .get();
 
-    return result === undefined ? null : result as DBMessage;
+    return result ?? null;
+  }
+
+  async find(data: Partial<DBMessage>): Promise<DBMessage | null> {
+    return this.findByFields(data, false);
+  }
+
+  async findAll(data: Partial<DBMessage>): Promise<DBMessage[]> {
+    return this.findByFields(data, true);
+  }
+
+  private async findByFields<T extends (DBMessage | null) | DBMessage[]>(
+    data: Partial<DBMessage>,
+    all: boolean = false,
+  ): Promise<T> {
+    let query = this.db.select().from(messageTable);
+    const conditions = Object.entries(data)
+      .filter(([_, value]) => value !== undefined)
+      .map(([key, value]) => eq(messageTable[key as keyof typeof messageTable], value as string));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    if (all) {
+      const results = await query.all();
+      return results as T;
+    } else {
+      const result = await query.get();
+      return (result || null) as T;
+    }
+  }
+
+  async get(id: string): Promise<DBMessage | null> {
+    const result = await this.db
+      .select()
+      .from(messageTable)
+      .where(eq(messageTable.id, id))
+      .get();
+    return result as DBMessage || null;
   }
 }
